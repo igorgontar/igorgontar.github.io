@@ -2,6 +2,25 @@
 <html>
 <head>
 <title>Embeded MD - Final</title>
+
+<!--
+<link  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css" rel="stylesheet" /> 
+<link  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/vs2015.min.css" rel="stylesheet" /> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.0.4/markdown-it.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.9.2/mermaid.min.js"></script>
+-->
+
+<link  href="../dist/md-embed-it.css" rel="stylesheet" /> 
+<script src="../dist/md-embed-it.js"></script>
+<!-- <link  href="https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/dist/md-embed-it.css" rel="stylesheet" />-->
+<!-- <script src="https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/dist/md-embed-it.js"></script> -->
+<script>
+new MdEmbedIt(); 
+//var mymd = new  MdEmbedIt({renderOnLoad:true, loadDeps:true}); 
+//x.render_all();
+//x.render_tag("md-id-1");
+</script>
 </head>
 <!-- 
 HOW TO USE: 
@@ -35,7 +54,7 @@ HOW TO USE:
  NOTE:
     This solution works very well with VSCode Html Preview panel. No 3rd party plugins needed.   
 -->
-<pre class="md-embed-it" style="display: none;">
+<pre id="md-id-1" class="md-embed-it" style="display: none;">
 ## 10 reasons why not use (key, value) storage as relational database. Especially - distributed cache. 
 
 ```mermaid
@@ -112,18 +131,18 @@ Cell 1  |Cell 2  |Cell 3  |Cell 4
 
 </pre>
 
-<pre class="md-embed-it" style="display: none;">
+<pre id="md-id-2" class="md-embed-it" style="display:none;">
 -----------------
 ## Here is the second markdown section
 > look how fast is it...
 </pre>
 
-<!-- <link  href="../dist/md-embed-it.css" rel="stylesheet" /> -->
-<!-- <script src="../dist/md-embed-it.js"></script> -->
-<link  href="https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/dist/md-embed-it.css" rel="stylesheet" />
-<script src="https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/dist/md-embed-it.js"></script>
-
-<script>let x = new MdEmbedIt(); x.render_all();</script>
-
 <br>EOF
+
+<script>
+    //mymd.render_all();
+    //mymd.render_tag("md-id-1");
+    //mymd.render_tag("md-id-2");
+</script>
+    
 </body>

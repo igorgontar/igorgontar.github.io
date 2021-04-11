@@ -1,6 +1,7 @@
 class MdEmbedIt
 {
-    constructor() {
+
+    constructor(config = {renderOnLoad: true, loadDeps: true}) {
         // dependencies
         // scripts
         // this.url_js_markdown_it = "https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.0.4/markdown-it.min.js";
@@ -10,19 +11,31 @@ class MdEmbedIt
         // this.url_css_hl_def   = "https://unpkg.com/@highlightjs/cdn-assets@10.7.1/styles/default.min.css";
         // this.url_css_hl_theme = "https://unpkg.com/@highlightjs/cdn-assets@10.7.1/styles/vs2015.min.css";
 
+        /* 
+        <link  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css" rel="stylesheet" /> 
+        <link  href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/vs2015.min.css" rel="stylesheet" /> 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.0.4/markdown-it.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.9.2/mermaid.min.js"></script> 
+        */
+
         // scripts
         this.url_js_markdown_it = "https://cdnjs.cloudflare.com/ajax/libs/markdown-it/12.0.4/markdown-it.min.js";
         this.url_js_hl          = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js";
         this.url_js_mermaid     = "https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.9.2/mermaid.min.js";
-
         // style sheets
         this.url_css_hl_def   = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css";
         this.url_css_hl_theme = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/vs2015.min.css";
         
-        this.init_promise = null;
         this.markdownit = null;
-        
+        this.mermaid = null;
         this.initialized = false;
+
+        this.config = config;
+        
+        if(this.config.renderOnLoad) {
+            this.register_on_document_load(() => this.render_all());
+        }
     }
 
     load_css(url) {
@@ -48,132 +61,78 @@ class MdEmbedIt
         });
     }
 
-    init_with_implicit_usage_of_promises() {
-        if (this.init_promise)
-            return this.init_promise;
-
-        let promise = new Promise((resolve, reject) => {
-            this.load_css(this.url_css_hl_def);
-            this.load_css(this.url_css_hl_theme);
-            resolve(true);
-        })
-        .then(() => {
-            this.load_script(this.url_js_markdown_it);
-        })
-        .then(() => {
-            console.log('markdown loaded.');
-            return this.load_script(this.url_js_hl);
-        })
-        .then(() => {
-            console.log('highlight loaded.');
-            return this.load_script(this.url_js_mermaid);
-        })
-        .then(() => {
-            console.log('mermaid loaded.');
-            let has_mermaid = typeof mermaid !== 'undefined';
-            if (has_mermaid) {
-                mermaid.initialize({ startOnLoad: false, theme: 'forest' });
-            }
-            this.markdownit = window.markdownit({
-                html: true,
-                typographer: false,
-                highlight: function (str, lang) {
-                    if (lang === "mermaid" && has_mermaid) {
-                        // do not escape mermaid text, it's parser won't work if '>' sign is translated to &gt;
-                        //return '<div class="mermaid">' + str + '</div>';
-                        //return str;
-                        try {
-                            let svg = mermaid.mermaidAPI.render("id-mermaid-temp", str);
-                            return svg;
-                        } catch (e) {
-                            console.log('mermaid', e);
-                            return '<pre>' + str + '\n<span style="color:red">mermaid diagram parser error:\n' + e + '</span></pre>';
-                        }
-                    }
-                    else if (lang && hljs.getLanguage(lang)) {
-                        try {
-                            var res = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
-                            // the res value is returned as already escaped 
-                            return '<pre class="hljs"><code>' + res + '</code></pre>';
-                        } catch (e) { console.log('highlight', e); }
-                    }
-                    //return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
-                    return ''; // default escaping, it's the same as above, but shorter
-                }
-            });
-            //if(has_mermaid)
-            //    mermaid.init({noteMargin: 4}, ".language-mermaid");
-        })
-        .catch((e) => {
-            console.log('initialization failed.', e);
-        })
-
-        this.init_promise = promise;
-        return this.init_promise;
-    }
-
     async init() {
         if (this.initialized)
             return;
 
-        this.load_css(this.url_css_hl_def);
-        this.load_css(this.url_css_hl_theme);
-
         try
         {
-            await this.load_script(this.url_js_markdown_it);
-            console.log('markdown loaded.');
-            
-            await this.load_script(this.url_js_hl);
-            console.log('highlight loaded.');
-            
-            await this.load_script(this.url_js_mermaid);
-            console.log('mermaid loaded.');
+            if(this.config.loadDeps) {
+                this.load_css(this.url_css_hl_def);
+                this.load_css(this.url_css_hl_theme);
 
-            let has_mermaid = typeof mermaid !== 'undefined';
-            if (has_mermaid) {
+                await this.load_script(this.url_js_markdown_it);
+                console.log('markdown loaded.');
+                
+                await this.load_script(this.url_js_hl);
+                console.log('highlight loaded.');
+                
+                await this.load_script(this.url_js_mermaid);
+                console.log('mermaid loaded.');
+            } 
+
+            if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({ startOnLoad: false, theme: 'forest' });
+                this.mermaid = mermaid;
             }
             
             this.markdownit = window.markdownit({
                 html: true,
                 typographer: false,
-                highlight: function (str, lang) {
-                    if (lang === "mermaid" && has_mermaid) {
-                        // do not escape mermaid text, it's parser won't work if '>' sign is translated to &gt;
-                        //return '<div class="mermaid">' + str + '</div>';
-                        //return str;
-                        try {
-                            let svg = mermaid.mermaidAPI.render("id-mermaid-temp", str);
-                            return svg;
-                        } catch (e) {
-                            console.log('mermaid', e);
-                            return '<pre>' + str + '\n<span style="color:red">mermaid diagram parser error:\n' + e + '</span></pre>';
-                        }
-                    }
-                    else if (lang && hljs.getLanguage(lang)) {
-                        try {
-                            var res = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
-                            // the res value is returned as already escaped 
-                            return '<pre class="hljs"><code>' + res + '</code></pre>';
-                        } catch (e) { 
-                            console.log('highlight', e); 
-                        }
-                    }
-                    //return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
-                    return ''; // default escaping, it's the same as above, but shorter
-                }
+                highlight: (str, lang) => this.do_highlite(str, lang),
             });
 
             this.initialized = true;
 
         } catch(e) {
-            console.log('initialization failed.', e);
+            console.error('initialization failed.', e);
+            
+            if(!this.config.loadDeps ) {
+                console.error('loading of dependent libraries is disabled in config, please load markdown-it, highlights and mermaid scipts and css, for example using script and link tags in the thml header section.');
+            }
         }
+    }
+
+    do_highlite(str, lang) {
+    
+        if (lang === "mermaid" && this.mermaid) {
+            // do not escape mermaid text, it's parser won't work if '>' sign is translated to &gt;
+            //return '<div class="mermaid">' + str + '</div>';
+            //return str;
+            try {
+                let svg = this.mermaid.mermaidAPI.render("id-mermaid-temp", str);
+                return svg;
+            } catch (e) {
+                console.log('mermaid', e);
+                return '<pre>' + str + '\n<span style="color:red">mermaid diagram parser error:\n' + e + '</span></pre>';
+            }
+        }
+        else if (lang && hljs.getLanguage(lang)) {
+            try {
+                var res = hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+                // the res value is returned as already escaped 
+                return '<pre class="hljs"><code>' + res + '</code></pre>';
+            } catch (e) { 
+                console.log('highlight', e); 
+            }
+        }
+        //return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+        return ''; // default escaping, it's the same as above, but shorter
     }
 
     async render_tag(markdownId, htmlId) {
         await this.init();
+        
         this.do_render(markdownId, htmlId);
     }
 
@@ -185,40 +144,30 @@ class MdEmbedIt
     render_by_class(className) {
         className = className ?? "md-embed-it";
         let allNodes = document.getElementsByClassName(className);
-        let nodes = Array.from(allNodes);
+        let nodes = Array.from(allNodes); //m ake a copy because we are going to replace nodes when rendering and they will disappear from the nodes collection in th e middle of the loop
         for (let i = 0; i < nodes.length; i++) {
             let mdNode = nodes[i];
-            let html = this.md_to_html(mdNode);
-            let htmlNode = document.createElement('div')
-            htmlNode.innerHTML = html;
-            mdNode.replaceWith(htmlNode);
+            this.md_to_html(mdNode);
         };
     }
 
-    md_to_html(mdNode) {
+    md_to_html(mdNode, htmlNode) {
+        
+        if(!this.initialized) {
+            this.ensureVisible(mdNode);
+            return;
+        }
+
         let html = null;
         try {
+
             let markup = mdNode.innerText; // use innerText as opposed to innerHTML, because it is de-escaped by HTML parser 
-            if(this.markdownit) {
-                html = this.markdownit.render(markup);
-            } else {
-                html = '<pre>' + mdNode.innerHTML + '</pre>'; // TODO: not very optimal, better just leave the original tag and make sure it is visible
-            }
+            html = this.markdownit.render(markup);
         } catch (e) {
             html = '<pre>' + e + '</pre>'
         }
-        return html;
-    }
 
-    do_render(markdownId, htmlId) {
-
-        let mdNode = document.getElementById(markdownId); // make sure the element with markdown markup is a <pre> element
-        if (!mdNode) return;
-
-        let html = this.md_to_html(mdNode);
-
-        let htmlNode = document.getElementById(htmlId);
-        if (htmlNode) {
+        if(htmlNode) {
             htmlNode.innerHTML = html;
             mdNode.remove();
         } else {
@@ -226,6 +175,21 @@ class MdEmbedIt
             htmlNode.innerHTML = html;
             mdNode.replaceWith(htmlNode);
         }
+    }
+
+    ensureVisible(node) {
+        node.style = 'display: block;';
+        //node.style = 'visibility: visible;';
+    }
+
+    do_render(markdownId, htmlId) {
+
+        let mdNode = document.getElementById(markdownId); // make sure the element with markdown markup is a <pre> element
+        if (!mdNode) return;
+
+        let htmlNode = document.getElementById(htmlId);
+        this.md_to_html(mdNode, htmlNode);
+
     }
 
     register_on_document_load(contentLoaded) {
