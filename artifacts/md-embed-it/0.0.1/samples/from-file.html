@@ -18,15 +18,22 @@
 <script src="../dist/md-embed-it.js"></script>
 
 <script>
-//new MdEmbedIt(); 
-var mymd = new MdEmbedIt({renderOnLoad:false, loadDeps:true}); 
+new MdEmbedIt(); 
+//var mymd = new MdEmbedIt({renderOnLoad:false, loadDeps:true}); 
 //mymd.render_file("md-id-1", "sample.md");
 </script>
 </head>
 
 <body>
-<pre id="md-id-1" class="md-embed-it" style="display: none;"></pre>
-<pre id="md-id-2" class="md-embed-it" style="display: none;"></pre>
+<pre id="md-id-1" class="md-embed-it" data-url="https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/samples/sample.md">loading markdown file...</pre>
+<pre id="md-id-2" class="md-embed-it" style="display: none;">
+## Embedded markdown
+
+1. one
+2. two
+3. three
+
+</pre>
 
 <br>EOF
 
@@ -34,7 +41,7 @@ var mymd = new MdEmbedIt({renderOnLoad:false, loadDeps:true});
     //mymd.render_all();
     //mymd.render_tag("md-id-1");
     //mymd.render_tag("md-id-2");
-    mymd.render_file("md-id-1", null, "https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/samples/sample.md");
+    //mymd.render_file("md-id-1", null, "https://igorgontar.github.io/artifacts/md-embed-it/0.0.1/samples/sample.md");
 </script>
     
 </body>

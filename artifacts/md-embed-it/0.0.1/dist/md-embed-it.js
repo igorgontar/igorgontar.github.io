@@ -161,8 +161,7 @@ class MdEmbedIt
         let nodes = Array.from(allNodes); //m ake a copy because we are going to replace nodes when rendering and they will disappear from the nodes collection in th e middle of the loop
         for (let i = 0; i < nodes.length; i++) {
             let mdNode = nodes[i];
-            let fileUrl = null; // TODO: get it from data-* attribute
-            this.md_to_html(mdNode, null, fileUrl);
+            this.md_to_html(mdNode);
         };
     }
 
@@ -173,7 +172,7 @@ class MdEmbedIt
         if(!url)
             url = fileUrl;
         if(!url)
-            url = mdNode.dataset['url'];
+            url = mdNode.dataset?.url;
         
         if(url) {
             let res = await fetch(url);
