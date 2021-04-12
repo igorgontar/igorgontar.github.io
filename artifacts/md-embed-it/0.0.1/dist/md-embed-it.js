@@ -177,7 +177,7 @@ class MdEmbedIt
         
         if(url) {
             let res = await fetch(url);
-            let md = await res.text();
+            md = await res.text();
         } else {       
             md = mdNode.innerText; // use innerText as opposed to innerHTML, because it is de-escaped by HTML parser
         }
