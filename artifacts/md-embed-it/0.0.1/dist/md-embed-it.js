@@ -133,7 +133,21 @@ class MdEmbedIt
     async render_tag(markdownId, htmlId) {
         await this.init();
         
-        this.do_render(markdownId, htmlId);
+        let mdNode = document.getElementById(markdownId); // make sure the element with markdown markup is a <pre> element
+        if (!mdNode) return;
+
+        let htmlNode = document.getElementById(htmlId);
+        this.md_to_html(mdNode, htmlNode);
+    }
+
+    async render_file(markdownId, htmlId, fileUrl) {
+        await this.init();
+        
+        let mdNode = document.getElementById(markdownId); // make sure the element with markdown markup is a <pre> element
+        if (!mdNode) return;
+
+        let htmlNode = document.getElementById(htmlId);
+        this.md_to_html(mdNode, htmlNode, fileUrl);
     }
 
     async render_all(className) {
@@ -147,11 +161,32 @@ class MdEmbedIt
         let nodes = Array.from(allNodes); //m ake a copy because we are going to replace nodes when rendering and they will disappear from the nodes collection in th e middle of the loop
         for (let i = 0; i < nodes.length; i++) {
             let mdNode = nodes[i];
-            this.md_to_html(mdNode);
+            let fileUrl = null; // TODO: get it from data-* attribute
+            this.md_to_html(mdNode, null, fileUrl);
         };
     }
 
-    md_to_html(mdNode, htmlNode) {
+    async get_md_text_from_node(mdNode, fileUrl) {
+        
+        let md = null;
+        let url = null;
+        if(!url)
+            url = fileUrl;
+        if(!url)
+            url = mdNode.dataset['url'];
+        
+        if(url) {
+            let res = await fetch(url);
+            let md = await res.text();
+        } else {       
+            md = mdNode.innerText; // use innerText as opposed to innerHTML, because it is de-escaped by HTML parser
+        }
+        return md; 
+    }
+
+    async md_to_html(mdNode, htmlNode, fileUrl) {
+        if(mdNode.nodeName != 'PRE')
+            return; // avoid double-rendering
         
         if(!this.initialized) {
             this.ensureVisible(mdNode);
@@ -161,7 +196,7 @@ class MdEmbedIt
         let html = null;
         try {
 
-            let markup = mdNode.innerText; // use innerText as opposed to innerHTML, because it is de-escaped by HTML parser 
+            let markup = await this.get_md_text_from_node(mdNode, fileUrl); 
             html = this.markdownit.render(markup);
         } catch (e) {
             html = '<pre>' + e + '</pre>'
@@ -180,16 +215,6 @@ class MdEmbedIt
     ensureVisible(node) {
         node.style = 'display: block;';
         //node.style = 'visibility: visible;';
-    }
-
-    do_render(markdownId, htmlId) {
-
-        let mdNode = document.getElementById(markdownId); // make sure the element with markdown markup is a <pre> element
-        if (!mdNode) return;
-
-        let htmlNode = document.getElementById(htmlId);
-        this.md_to_html(mdNode, htmlNode);
-
     }
 
     register_on_document_load(contentLoaded) {
